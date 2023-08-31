@@ -54,6 +54,8 @@ LIFECYCLE_CONFIG_3=$(cat << 'EOF'
 
 # Include "base" separately since it's not a subdirectory.
 for env in base /home/ec2-user/anaconda3/envs/*; do
+    PYTHON_VERSION="$(conda run -n $env python --version)"
+    echo "$env uses python_version=$PYTHON_VERSION"
     echo "Updating SageMaker vended software in $env from pre-release SDKs..."
 
     sudo -u ec2-user -E sh -c 'source /home/ec2-user/anaconda3/bin/activate "$env"'
