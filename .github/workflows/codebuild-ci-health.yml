@@ -1,0 +1,37 @@
+name: CI Health Check
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+    
+jobs:
+  integ-build:
+    if: github.repository == 'benieric/sagemaker-python-sdk'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # This is required for requesting the JWT
+      contents: read # This is required for actions/checkout
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::341897309766:role/GitHub-Actions-Role-Test
+          aws-region: us-west-2
+          role-duration-seconds: 10800
+      - name: Run Integ Build
+        uses: aws-actions/aws-codebuild-run-build@v1
+        timeout-minutes: 120
+        with:
+          project-name: ci-test
+          buildspec-override:	|
+            version: 0.2
+            phases:
+              pre_build:
+                commands:
+                  - start-dockerd
+                  - pyenv global 3.10.13
+                  - pip3.10 install -U boto3 awscli requests tox==3.20.1 twine fabric tox-pip-version
+              build:
+                commands:
+                  - IGNORE_COVERAGE='-'
+                  - env -u AWS_DEFAULT_REGION
+                  - tox -e py310 -- tests/integ -m 'not local_mode and not cron and not slow_test' -n 240 --reruns 3 --reruns-delay 15 --durations 50 --boto-config '{"region_name":"us-west-2"}'
