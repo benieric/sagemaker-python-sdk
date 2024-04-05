@@ -16,10 +16,13 @@ jobs:
       - name: Check Access
         if: ${{ github.triggering_actor.author_association != 'COLLABORATOR' && github.event.pull_request.author_association != 'MEMBER' }}
         run: |
-          echo "triggering_actor.name: ${{ github.triggering_actor.name }}"
-          echo "triggering_actor.author_association: ${{ github.triggering_actor.author_association }}"
+          echo "triggering_actor.name: $GITHUB_ACTOR_NAME"
+          echo "triggering_actor.author_association: $GITHUB_ACTOR_ASSOCIATION"
           echo "Event not triggered by a collaborator."
           exit 1
+        env:
+          GITHUB_ACTOR_NAME: ${{ github.triggering_actor.name }}
+          GITHUB_ACTOR_ASSOCIATION: ${{ github.triggering_actor.author_association }}
   codestyle-doc-tests:
     runs-on: ubuntu-latest
     needs: [check-access]
