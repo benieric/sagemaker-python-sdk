@@ -10,32 +10,35 @@ permissions:
     id-token: write # This is required for requesting the JWT
 
 jobs:
-  check-access:
+  set-workflow-environment:
     runs-on: ubuntu-latest
+    outputs:
+      workflow_env: ${{ steps.set-env.outputs.result }}
     steps:
-      - name: Collaborator Check
+      - name: Check Permissions & Set Workflow Environment
         uses: actions/github-script@v7
-        id: collab-check
+        id: set-env
         with:
           result-encoding: string
           debug: true
           script: | 
-            const result = await github.rest.repos.checkCollaborator({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              username: '${{github.triggering_actor}}',
-            });
-            return result.status;
-      - name: Check Status
-        if: ${{steps.collab-check.outputs.result != '204'}}
-        run: |
-          echo "Event not triggered by a collaborator."
-          exit 1
+            try {
+              const result = await github.rest.repos.checkCollaborator({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: "${{ github.event.pull_request.user.login }}",
+              });
+              console.log("Verifed ${{ github.event.pull_request.user.login }} is a repo collaborator.")
+              return result.status == 204 ? "collab-env" : "manual-approval-env"
+            } catch (error) {
+              console.log("${{ github.event.pull_request.user.login }} is not a collaborator. Requiring Manual Approval to run Workflow.")
+              return "manual-approval-env"
+            }
   codestyle-doc-tests:
     runs-on: ubuntu-latest
-    needs: [check-access]
-    if: needs.check-access.result == 'success'
-    steps:
+    needs: [set-workflow-environment]
+    environment: ${{  needs.set-workflow-environment.outputs.workflow_env }}
+    steps: 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -49,12 +52,12 @@ jobs:
           source-version-override: 'pr/${{ github.event.pull_request.number }}'
   unit-tests:
     runs-on: ubuntu-latest
-    needs: [check-access]
+    needs: [set-workflow-environment]
+    environment: ${{  needs.set-workflow-environment.outputs.workflow_env }}
     strategy:
         fail-fast: false
         matrix:
           python-version: ["py38","py39","py310","py311"]
-    if: needs.check-access.result == 'success'
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
