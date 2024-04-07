@@ -29,7 +29,7 @@ jobs:
                 username: "${{ github.event.pull_request.user.login }}",
               });
               console.log("Verifed ${{ github.event.pull_request.user.login }} is a repo collaborator.")
-              return result.status == "204" ? "auto-approve" : "manual-approval"
+              return res.status == 204 ? "auto-approve" : "manual-approval"
             } catch (error) {
               console.log("${{ github.event.pull_request.user.login }} is not a collaborator. Requiring Manual Approval to run Workflow.")
               return "manual-approval"
