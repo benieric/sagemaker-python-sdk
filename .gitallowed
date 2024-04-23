@@ -1,0 +1,5 @@
+# Used by git-secrets (https://github.com/awslabs/git-secrets) to allow specific patterns in scan
+
+# Allow Fake AWS Accounts used in Tests
+account = "987654321098"
+"Account": "012345678910"
