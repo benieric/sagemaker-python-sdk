@@ -329,7 +329,7 @@ def created_base_model(sagemaker_session, cpu_instance_type):
 
 
 @pytest.mark.slow_test
-@pytest.mark.flaky(reruns=3, reruns_delay=2)
+@pytest.mark.flaky(reruns=3, reruns_delay=3)
 def test_default_right_size_and_deploy_registered_model_sklearn(
     default_right_sized_model, sagemaker_session
 ):
@@ -352,7 +352,7 @@ def test_default_right_size_and_deploy_registered_model_sklearn(
 
 
 @pytest.mark.slow_test
-@pytest.mark.flaky(reruns=3, reruns_delay=2)
+@pytest.mark.flaky(reruns=3, reruns_delay=3)
 def test_default_right_size_and_deploy_unregistered_model_sklearn(
     default_right_sized_unregistered_model, sagemaker_session
 ):
@@ -375,7 +375,7 @@ def test_default_right_size_and_deploy_unregistered_model_sklearn(
 
 
 @pytest.mark.slow_test
-@pytest.mark.flaky(reruns=3, reruns_delay=2)
+@pytest.mark.flaky(reruns=3, reruns_delay=3)
 def test_default_right_size_and_deploy_unregistered_base_model(
     default_right_sized_unregistered_base_model, sagemaker_session
 ):
