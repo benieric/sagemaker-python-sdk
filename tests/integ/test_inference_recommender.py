@@ -329,7 +329,7 @@ def created_base_model(sagemaker_session, cpu_instance_type):
 
 
 @pytest.mark.slow_test
-@pytest.mark.flaky(reruns=3, reruns_delay=3)
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_default_right_size_and_deploy_registered_model_sklearn(
     default_right_sized_model, sagemaker_session
 ):
