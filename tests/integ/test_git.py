@@ -82,7 +82,7 @@ def test_github(
             predictor.delete_endpoint()
 
 
-@pytest.mark.flaky(reruns=3, reruns_delay=2)
+@pytest.mark.flaky(reruns=3, reruns_delay=3)
 @pytest.mark.local_mode
 @pytest.mark.skip("needs a secure authentication approach")
 def test_private_github(
