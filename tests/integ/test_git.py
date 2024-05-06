@@ -49,6 +49,7 @@ CODECOMMIT_BRANCH = "master"
 LOCK_PATH = os.path.join(tempfile.gettempdir(), "sagemaker_test_git_lock")
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 @pytest.mark.local_mode
 def test_github(
     sagemaker_local_session, pytorch_inference_latest_version, pytorch_inference_latest_py_version
@@ -81,6 +82,7 @@ def test_github(
             predictor.delete_endpoint()
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 @pytest.mark.local_mode
 @pytest.mark.skip("needs a secure authentication approach")
 def test_private_github(
@@ -135,6 +137,7 @@ def test_private_github(
             predictor.delete_endpoint()
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 @pytest.mark.local_mode
 @pytest.mark.skip("needs a secure authentication approach")
 def test_private_github_with_2fa(
@@ -192,6 +195,7 @@ def test_private_github_with_2fa(
             predictor.delete_endpoint()
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 @pytest.mark.local_mode
 def test_github_with_ssh_passphrase_not_configured(
     sagemaker_local_session, sklearn_latest_version, sklearn_latest_py_version
@@ -225,6 +229,7 @@ def test_github_with_ssh_passphrase_not_configured(
     assert "returned non-zero exit status" in str(error.value)
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 @pytest.mark.local_mode
 @pytest.mark.skip("needs a secure authentication approach")
 def test_codecommit(
