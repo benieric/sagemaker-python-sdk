@@ -78,7 +78,7 @@ def test_auto_ml_fit(sagemaker_session):
 
 @pytest.mark.skipif(
     tests.integ.test_region() in tests.integ.NO_AUTO_ML_REGIONS,
-    reason="AutoML is not supported in the region yet.",
+    reason="AutoML is not supported in the region yet. Dummy commit change",
 )
 def test_auto_ml_fit_local_input(sagemaker_session):
     auto_ml = AutoML(
