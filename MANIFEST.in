@@ -10,6 +10,9 @@ include LICENSE.txt
 include README.rst
 
 prune tests
+exclude requirements/extras/test_requirements.txt
+exclude requirements/tox/*
+
 
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
