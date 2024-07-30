@@ -17,24 +17,38 @@ jobs:
     outputs: 
       approval-env: ${{ steps.collab-check.outputs.result }}
     steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+            role-to-assume: ${{ secrets.MONITORING_AWS_ROLE_ARN }}
+            aws-region: us-west-2
       - name: Collaborator Check
         uses: actions/github-script@v7
         id: collab-check
+        env:
+            PR_USER_LOGIN: ${{ github.event.pull_request.user.login }}
         with:
           github-token: ${{ secrets.COLLAB_CHECK_TOKEN }}
           result-encoding: string
           script: | 
+            const user = JSON.stringify(process.env.PR_USER_LOGIN);
             try {
               const res = await github.rest.repos.checkCollaborator({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                username: "${{ github.event.pull_request.user.login }}",
+                username: user,
               });
-              console.log("Verifed ${{ github.event.pull_request.user.login }} is a repo collaborator. Auto Approving PR Checks.")
+              console.log("Verifed ${user} is a repo collaborator. Auto Approving PR Checks.")
               return res.status == "204" ? "auto-approve" : "manual-approval"
             } catch (error) {
-              console.log("${{ github.event.pull_request.user.login }} is not a collaborator. Requiring Manual Approval to run PR Checks.")
-              return "manual-approval"
+              if (error.message == "Bad credentials") {
+                console.log("Token Expired. Please update the COLLAB_CHECK_TOKEN secret. Requiring Manual Approval to run PR Checks becuase the collaborator status could not be verified.")
+                const { execSync } = require('child_process')
+                execSync('aws cloudwatch put-metric-data --namespace "GitHubActions" --metric-name "BadCredentials" --value 1')
+              } else {
+                console.log("${user} is not a collaborator. Requiring Manual Approval to run PR Checks.")
+              }
+                return "manual-approval"
             }
   wait-for-approval:
     runs-on: ubuntu-latest
