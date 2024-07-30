@@ -9,6 +9,9 @@ on:
       commitSha:
         required: true
         type: string
+    secrets: 
+      CI_AWS_ROLE_ARN:
+        required: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ inputs.prNumber }}
