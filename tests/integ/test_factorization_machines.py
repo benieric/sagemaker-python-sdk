@@ -57,7 +57,7 @@ def test_factorization_machines(sagemaker_session, cpu_instance_type, training_s
         )
         predictor = model.deploy(1, cpu_instance_type, endpoint_name=job_name)
         result = predictor.predict(training_set[0][:10])
-
+        # Random Test
         assert len(result) == 10
         for record in result:
             assert record.label["score"] is not None
