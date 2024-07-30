@@ -35,9 +35,9 @@ jobs:
               const res = await github.rest.repos.checkCollaborator({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                username: ${{ env.PR_USER_LOGIN }},
+                username: "${{ env.PR_USER_LOGIN }}",
               });
-              console.log("Verifed ${{ env.PR_USER_LOGIN }} is a repo collaborator. Auto Approving PR Checks.")
+              console.log("Verifed user is a repo collaborator. Auto Approving PR Checks.")
               return res.status == "204" ? "auto-approve" : "manual-approval"
             } catch (error) {
               if (error.message == "Bad credentials") {
@@ -45,7 +45,7 @@ jobs:
                 const { execSync } = require('child_process')
                 execSync('aws cloudwatch put-metric-data --namespace "GitHubActions" --metric-name "BadCredentials" --value 1')
               } else {
-                console.log("${{ env.PR_USER_LOGIN }} is not a collaborator. Requiring Manual Approval to run PR Checks.")
+                console.log("User is not a collaborator. Requiring Manual Approval to run PR Checks.")
               }
                 return "manual-approval"
             }
