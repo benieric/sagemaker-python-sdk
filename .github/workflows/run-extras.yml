@@ -45,18 +45,20 @@ jobs:
     run-slow-tests:
         needs: [check-comment]
         if: needs.check-comment.result == 'success' && github.event.review.body == '/run slow' || github.event.review.body == '/run extras'
-        uses: ./.github/workflows/slow-tests.yml
+        uses: ./.github/workflows/trigger-codebuild.yml
         secrets: 
             CI_AWS_ROLE_ARN: ${{ secrets.CI_AWS_ROLE_ARN }}
         with:
+            codeBuildProjectName: "${{ github.repository.name }}-ci-slow-tests"
             prNumber: ${{ github.event.pull_request.number }}
             commitSha: ${{ github.event.pull_request.head.sha }}
     run-localmode-tests:
         needs: [check-comment]
         if: needs.check-comment.result == 'success' && github.event.review.body == '/run localmode' || github.event.review.body == '/run extras'
-        uses: ./.github/workflows/localmode-tests.yml
+        uses: ./.github/workflows/trigger-codebuild.yml
         secrets:
             CI_AWS_ROLE_ARN: ${{ secrets.CI_AWS_ROLE_ARN }}
         with:
+            codeBuildProjectName: "${{ github.repository.name }}-ci-localmode-tests"
             prNumber: ${{ github.event.pull_request.number }}
             commitSha: ${{ github.event.pull_request.head.sha }}
