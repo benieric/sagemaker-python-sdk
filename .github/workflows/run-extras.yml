@@ -45,22 +45,14 @@ jobs:
     run-slow-tests:
         needs: [check-comment]
         if: needs.check-comment.result == 'success' && github.event.review.body == '/run slow' || github.event.review.body == '/run extras'
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v3
-            - name: Run Slow Tests
-              uses: ./.github/workflows/slow-tests.yml
-              with:
-                prNumber: ${{ github.event.pull_request.number }}
-                commitSha: ${{ github.event.pull_request.head.sha }}
+        uses: ./.github/workflows/slow-tests.yml
+        with:
+            prNumber: ${{ github.event.pull_request.number }}
+            commitSha: ${{ github.event.pull_request.head.sha }}
     run-localmode-tests:
         needs: [check-comment]
         if: needs.check-comment.result == 'success' && github.event.review.body == '/run localmode' || github.event.review.body == '/run extras'
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v3
-            - name: Run Local Mode Tests
-              uses: ./.github/workflows/localmode-tests.yml
-              with:
-                prNumber: ${{ github.event.pull_request.number }}
-                commitSha: ${{ github.event.pull_request.head.sha }}
+        uses: ./.github/workflows/localmode-tests.yml
+        with:
+            prNumber: ${{ github.event.pull_request.number }}
+            commitSha: ${{ github.event.pull_request.head.sha }}
