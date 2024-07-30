@@ -1,0 +1,64 @@
+name: Run Extras
+
+on:
+    pull_request_review:
+        types: [submitted]
+
+permissions:
+    id-token: write # This is required for requesting the JWT
+
+jobs:   
+    check-comment:
+        if: github.event.review.body == '/run slow' || github.event.review.body == '/run localmode' || github.event.review.body == '/run extras'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: ${{ secrets.MONITORING_AWS_ROLE_ARN }}
+                  aws-region: us-west-2
+            - name: Collaborator Check
+              uses: actions/github-script@v7
+              id: collab-check
+              env:
+                  GH_USER_LOGIN: ${{ github.event.review.user.login }}
+              with:
+                github-token: ${{ secrets.COLLAB_CHECK_TOKEN }}
+                result-encoding: string
+                script: | 
+                  try {
+                    const res = await github.rest.repos.checkCollaborator({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      username: "${{ env.GH_USER_LOGIN }}",
+                    });
+                    console.log("Verifed user is a repo collaborator.")
+                    return
+                  } catch (error) {
+                    if (error.message == "Bad credentials") {
+                      console.log("Token Expired. Please update the COLLAB_CHECK_TOKEN secret.")
+                      const { execSync } = require('child_process')
+                      execSync('aws cloudwatch put-metric-data --namespace "GitHubActions" --metric-name "BadCredentials" --value 1')
+                    } 
+                    throw new Error("Collaborator status could not be verified.")
+                  }
+    run-slow-tests:
+        needs: [check-comment]
+        if: needs.check-comment.result == 'success' && github.event.review.body == '/run slow' || github.event.review.body == '/run extras'
+        uses: ./.github/workflows/trigger-codebuild.yml
+        secrets: 
+            CI_AWS_ROLE_ARN: ${{ secrets.CI_AWS_ROLE_ARN }}
+        with:
+            codeBuildProjectName: "${{ github.repository.name }}-ci-slow-tests"
+            prNumber: ${{ github.event.pull_request.number }}
+            commitSha: ${{ github.event.pull_request.head.sha }}
+    run-localmode-tests:
+        needs: [check-comment]
+        if: needs.check-comment.result == 'success' && github.event.review.body == '/run localmode' || github.event.review.body == '/run extras'
+        uses: ./.github/workflows/trigger-codebuild.yml
+        secrets:
+            CI_AWS_ROLE_ARN: ${{ secrets.CI_AWS_ROLE_ARN }}
+        with:
+            codeBuildProjectName: "${{ github.repository.name }}-ci-localmode-tests"
+            prNumber: ${{ github.event.pull_request.number }}
+            commitSha: ${{ github.event.pull_request.head.sha }}
