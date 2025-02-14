@@ -13,9 +13,13 @@
 """Distributed module."""
 from __future__ import absolute_import
 
+import os
+
+from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel
 from sagemaker.modules.utils import safe_serialize
+from sagemaker.modules.constants import SM_DRIVERS_LOCAL_PATH
 
 
 class SMP(BaseModel):
@@ -72,16 +76,39 @@ class SMP(BaseModel):
         return hyperparameters
 
 
-class DistributedConfig(BaseModel):
-    """Base class for distributed training configurations."""
+class DistributedConfig(BaseModel, ABC):
+    """Abstract base class for distributed training configurations.
 
-    _type: str = PrivateAttr()
+    This class defines the interface that all distributed training configurations
+    must implement. It provides a standardized way to specify driver scripts and
+    their locations for distributed training jobs.
+    """
 
-    def model_dump(self, *args, **kwargs):
-        """Dump the model to a dictionary."""
-        result = super().model_dump(*args, **kwargs)
-        result["_type"] = self._type
-        return result
+    @property
+    @abstractmethod
+    def driver_dir(self) -> str:
+        """Directory containing the driver script.
+
+        This property should return the path to the directory containing
+        the driver script, relative to the container's working directory.
+
+        Returns:
+            str: Path to directory containing the driver script
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def driver_script(self) -> str:
+        """Name of the driver script.
+
+        This property should return the name of the Python script that implements
+        the distributed training driver logic.
+
+        Returns:
+            str: Name of the driver script file
+        """
+        pass
 
 
 class Torchrun(DistributedConfig):
@@ -98,10 +125,16 @@ class Torchrun(DistributedConfig):
             The SageMaker Model Parallelism v2 parameters.
     """
 
-    _type: str = PrivateAttr(default="torchrun")
-
     process_count_per_node: Optional[int] = None
     smp: Optional["SMP"] = None
+
+    @property
+    def driver_dir(self) -> str:
+        return os.path.join(SM_DRIVERS_LOCAL_PATH, "drivers")
+
+    @property
+    def driver_script(self) -> str:
+        return "torchrun_driver.py"
 
 
 class MPI(DistributedConfig):
@@ -118,7 +151,13 @@ class MPI(DistributedConfig):
             The custom MPI options to use for the training job.
     """
 
-    _type: str = PrivateAttr(default="mpi")
-
     process_count_per_node: Optional[int] = None
     mpi_additional_options: Optional[List[str]] = None
+
+    @property
+    def driver_dir(self) -> str:
+        return os.path.join(SM_DRIVERS_LOCAL_PATH, "drivers")
+
+    @property
+    def driver_script(self) -> str:
+        return "mpi_driver.py"
