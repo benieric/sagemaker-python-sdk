@@ -17,12 +17,14 @@ import os
 
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any, List
-from pydantic import BaseModel
+from pydantic import PrivateAttr
+
 from sagemaker.modules.utils import safe_serialize
 from sagemaker.modules.constants import SM_DRIVERS_LOCAL_PATH
+from sagemaker.modules.configs import BaseConfig
 
 
-class SMP(BaseModel):
+class SMP(BaseConfig):
     """SMP.
 
     This class is used for configuring the SageMaker Model Parallelism v2 parameters.
@@ -76,7 +78,7 @@ class SMP(BaseModel):
         return hyperparameters
 
 
-class DistributedConfig(BaseModel, ABC):
+class DistributedConfig(BaseConfig, ABC):
     """Abstract base class for distributed training configurations.
 
     This class defines the interface that all distributed training configurations
